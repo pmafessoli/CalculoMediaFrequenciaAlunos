@@ -1,0 +1,4 @@
+com\edusoft\model\Nota.class
+com\edusoft\controller\AlunoController.class
+com\edusoft\model\AlunoModel.class
+com\edusoft\view\Main.class
