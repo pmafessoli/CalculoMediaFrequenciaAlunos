@@ -1,4 +1,5 @@
 package com.edusoft.controller;
+import java.util.ArrayList;
 
 import java.io.IOException;
 import java.net.URI;
@@ -10,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.edusoft.model.AlunoModel;
 import com.edusoft.model.AlunoResponse;
 import com.edusoft.model.Nota;
@@ -50,18 +52,28 @@ public class AlunoController {
 	}
 
 	private List<AlunoModel> getAlunos(String token) throws IOException, InterruptedException {
-		HttpClient client = HttpClient.newHttpClient();
-		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(EXECUTE_URL))
-				.header("Content-Type", "application/json").header("Authorization", "Bearer " + token)
-				.POST(HttpRequest.BodyPublishers.ofString("{}")).build();
+	    HttpClient client = HttpClient.newHttpClient();
+	    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(EXECUTE_URL))
+	            .header("Content-Type", "application/json").header("Authorization", "Bearer " + token)
+	            .POST(HttpRequest.BodyPublishers.ofString("{}")).build();
 
-		HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+	    HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
 
-		ObjectMapper mapper = new ObjectMapper();
-		AlunoResponse alunoResponse = mapper.readValue(response.body(), AlunoResponse.class);
+	    ObjectMapper mapper = new ObjectMapper();
+	    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-		return alunoResponse.getAlunos();
+	    if (response.headers().firstValue("Content-Type").orElse("").contains("application/json")) {
+	        AlunoResponse alunoResponse = mapper.readValue(response.body(), AlunoResponse.class);
+	        return alunoResponse.getAlunos();
+	    } else {
+	     
+	    	System.out.println("RECEBENDO DADOS EM HTML E IMPRIMINDO UMA LISTA VAZIA");
+	        return new ArrayList<>(); // Retorna uma lista vazia caso a resposta não seja em formato JSON
+	        
+	    }
 	}
+
+
 
 	private void calcularMediaFrequencia(List<AlunoModel> alunos) {
 		for (AlunoModel aluno : alunos) {
